@@ -1,41 +1,61 @@
-name: Deploy Astro site to Pages
+---
+const projects = [
+  { id: "video1", title: "Bride", category: "Wedding Reel", url: "/videos/bride.mp4" },
+  { id: "video2", title: "Memories in Bloom", category: "Wedding Film", url: "/videos/memories.mp4" },
+  { id: "video3", title: "Rhythm & Soul", category: "Upcoming Music Video", url: "/videos/rhythm.mp4" },
+];
+---
 
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
+<section id="work-grid" style="padding: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+  {projects.map(project => (
+    <button 
+      class="video-trigger"
+      data-video-id={project.id}
+      style="background: none; border: none; padding: 0; text-align: left; cursor: pointer; width: 100%;"
+    >
+      <div class="project-card" style="background: #1a1a1a; padding: 20px; border-left: 4px solid #C3B091; transition: all 0.3s ease;">
+        <h3 style="margin: 0; color: #ffffff;">{project.title}</h3>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #C3B091;">{project.category}</p>
+      </div>
+    </button>
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    <div id={project.id} class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.95); justify-content:center; align-items:center; flex-direction: column;">
+      <span class="close-btn" style="cursor:pointer; position:absolute; top:20px; right:30px; font-size:40px; color:white; z-index:1001;">&times;</span>
+      
+      <video width="80%" style="max-width: 800px; border-radius: 10px;" controls>
+        <source src={project.url} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  ))}
+</section>
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist # Astro builds to 'dist' by default
+<script>
+  document.getElementById('work-grid')?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const trigger = target.closest('.video-trigger') as HTMLElement;
+    
+    if (trigger) {
+      const id = trigger.getAttribute('data-video-id');
+      const modal = document.getElementById(id!);
+      if (modal) {
+        modal.style.display = 'flex';
+        // Auto-play the video when modal opens
+        const video = modal.querySelector('video');
+        video?.play();
+      }
+    }
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+    if (target.classList.contains('close-btn')) {
+      const modal = target.closest('.modal') as HTMLElement;
+      modal.style.display = 'none';
+      
+      // Stop and reset the video when closed
+      const video = modal.querySelector('video');
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+    }
+  });
+</script>
