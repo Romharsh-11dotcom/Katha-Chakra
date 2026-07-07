@@ -1,8 +1,9 @@
 ---
 const projects = [
-  { id: "video1", title: "Bride", category: "Wedding Reel", videoUrl: "/videos/bride.mp4" },
-  { id: "video2", title: "Memories in Bloom", category: "Wedding Film", videoUrl: "/videos/memories.mp4" },
-  { id: "video3", title: "Rhythm & Soul", category: "Upcoming Music Video", videoUrl: "/videos/rhythm.mp4" },
+  // ONLY use the video ID here, not the full link
+  { id: "video1", title: "Bride", category: "Wedding Reel", youtubeId: "Arnlacfag3A" },
+  { id: "video2", title: "Memories in Bloom", category: "Wedding Film", youtubeId: "YOUR_ID_2" },
+  { id: "video3", title: "Rhythm & Soul", category: "Upcoming Music Video", youtubeId: "YOUR_ID_3" },
 ];
 ---
 
@@ -22,35 +23,43 @@ const projects = [
     <div id={project.id} class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.95); justify-content:center; align-items:center; flex-direction: column;">
       <span class="close-btn" style="cursor:pointer; position:absolute; top:20px; right:30px; font-size:40px; color:white; z-index:1001;">&times;</span>
       
-      <video width="80%" controls style="max-width: 800px; border-radius: 10px;">
-        <source src={project.videoUrl} type="video/mp4" />
-      </video>
+      <iframe 
+        width="80%" 
+        height="500px" 
+        src={`https://www.youtube.com/embed/${project.youtubeId}`} 
+        style="max-width: 800px; border-radius: 10px; border: none;"
+        allowfullscreen>
+      </iframe>
 
-      <a href={project.videoUrl} download style="margin-top: 20px; color: #C3B091; text-decoration: none; border: 1px solid #C3B091; padding: 10px 20px; border-radius: 5px;">
-        Download Video
+      <a href={`https://www.youtube.com/watch?v=${project.youtubeId}`} target="_blank" style="margin-top: 20px; color: #C3B091; text-decoration: none; border: 1px solid #C3B091; padding: 10px 20px; border-radius: 5px;">
+        Watch on YouTube
       </a>
     </div>
   ))}
 </section>
 
 <script>
-  // Event Delegation: Listen for clicks on the section rather than individual buttons
   document.getElementById('work-grid')?.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
+    const trigger = target.closest('.video-trigger') as HTMLElement;
     
-    // Check if user clicked the trigger button or something inside it
-    const trigger = target.closest('.video-trigger');
     if (trigger) {
       const id = trigger.getAttribute('data-video-id');
-      document.getElementById(id!)!.style.display = 'flex';
+      const modal = document.getElementById(id!);
+      if (modal) modal.style.display = 'flex';
     }
 
-    // Check if user clicked the close button
     if (target.classList.contains('close-btn')) {
-      target.parentElement!.style.display = 'none';
-      // Pause video when closing
-      const video = target.parentElement!.querySelector('video');
-      if (video) video.pause();
+      const modal = target.parentElement!;
+      modal.style.display = 'none';
+      
+      // Stop the YouTube video by clearing the src
+      const iframe = modal.querySelector('iframe');
+      if (iframe) {
+        const originalSrc = iframe.src;
+        iframe.src = '';
+        iframe.src = originalSrc;
+      }
     }
   });
 </script>
